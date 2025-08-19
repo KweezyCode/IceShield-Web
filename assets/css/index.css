@@ -3,7 +3,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:14px/1.5 
 .wrap{max-width:1200px;margin:0 auto;padding:16px}
 header{position:sticky;top:0;background:var(--bg);z-index:10;padding:10px 0}
 .brand{font-weight:700}
-.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .tab{padding:8px 12px;border:1px solid var(--border);border-radius:20px;background:#fff;cursor:pointer}
 .tab.active{background:var(--accent);color:#fff}
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin:12px 0}
@@ -30,3 +30,27 @@ thead th{position:sticky;top:0;background:#fafafa}
 tbody tr.row-created{background:#fff8db}    /* мягкий жёлтый */
 tbody tr.row-failed{background:#fde8e8}     /* мягкий красный */
 tbody tr.row-joined{background:#e7f7ed}     /* мягкий зелёный */
+
+/* Мобильная адаптация */
+@media (max-width: 600px){
+  .wrap{padding:10px}
+  h2{font-size:16px}
+  h3{font-size:14px}
+  .controls{gap:6px}
+  th,td{padding:6px}
+}
+
+/* Ультраширокий режим 21:9 — две панели: Аудит слева, Баны справа */
+body.wide-two .wrap{max-width:unset}
+body.wide-two #sec-audit,
+body.wide-two #sec-bans{display:inline-block;vertical-align:top;width:49%;}
+body.wide-two #sec-settings,
+body.wide-two #sec-users{display:none}
+
+/* Чтобы шапка не ломала поток */
+body.wide-two header{position:sticky;top:0}
+
+/* Чуть уменьшим внутренние отступы таблиц на очень широких экранах */
+@media (min-aspect-ratio: 21/9){
+  th,td{padding:7px}
+}

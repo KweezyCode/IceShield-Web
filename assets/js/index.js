@@ -34,8 +34,77 @@
   function ipFromNum(n){ if(n==null) return ''; let v = Number(n); if(!isFinite(v) || v<0) return ''; v = (v >>> 0); return [(v>>>24)&255,(v>>>16)&255,(v>>>8)&255,(v)&255].join('.'); }
   function setStatus(el,msg,ok){ el.textContent = msg; el.className = 'status ' + (ok===true?'ok':ok===false?'err':''); }
 
+  // ====== Режим ультраширокого экрана (две панели) ======
+  let wideTwo = false;
+  function isWideTwoPreferred(){
+    if(!hasAuth()) return false;
+    const w = window.innerWidth || 0; const h = window.innerHeight || 1;
+    const aspect = w / Math.max(1,h);
+    return (w >= 1600 && aspect >= 2.1);
+  }
+  function setWideTwo(on){ document.body.classList.toggle('wide-two', !!on); }
+  function markTabsAuditBansActive(){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    const tA = document.querySelector('.tab[data-target="sec-audit"]');
+    const tB = document.querySelector('.tab[data-target="sec-bans"]');
+    if(tA) tA.classList.add('active');
+    if(tB) tB.classList.add('active');
+  }
+  function markSectionsAuditBansActive(){
+    document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+    const sA = document.getElementById('sec-audit');
+    const sB = document.getElementById('sec-bans');
+    if(sA) sA.classList.add('active');
+    if(sB) sB.classList.add('active');
+  }
+  function applyLayoutMode(){
+    const want = isWideTwoPreferred();
+    if(want === wideTwo) return;
+    wideTwo = want; setWideTwo(want);
+    if(want){
+      // Включили две панели: активируем обе и подгружаем если нужно
+      markTabsAuditBansActive();
+      markSectionsAuditBansActive();
+      if(!audit.initialLoaded) resetAndLoadAudit();
+      if(!bans.initialLoaded) resetAndLoadBans();
+    } else {
+      // Вернулись к одной панели: оставим аудит активным по умолчанию
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+      const tA = document.querySelector('.tab[data-target="sec-audit"]'); if(tA) tA.classList.add('active');
+      const sA = document.getElementById('sec-audit'); if(sA) sA.classList.add('active');
+      if(!audit.initialLoaded) resetAndLoadAudit();
+    }
+  }
+  let resizeT; window.addEventListener('resize', ()=>{ clearTimeout(resizeT); resizeT = setTimeout(()=>{ applyLayoutMode(); }, 200); });
+
   // ====== Навигация вкладок ======
   function activateTab(id){
+    // Особая логика для широчайших экранов
+    if(id==='sec-settings' || id==='sec-users'){
+      // Для настроек/пользователей выходим из двухпанельного режима
+      if(wideTwo){ wideTwo=false; setWideTwo(false); }
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+      const tab = document.querySelector(`.tab[data-target="${id}"]`);
+      const sec = document.getElementById(id);
+      if(tab) tab.classList.add('active');
+      if(sec) sec.classList.add('active');
+      if(id==='sec-settings') applyInputs();
+      return;
+    }
+    if(id==='sec-audit' || id==='sec-bans'){
+      // При клике на одну из рабочих вкладок пробуем включить wide-two
+      applyLayoutMode();
+      if(wideTwo){
+        markTabsAuditBansActive();
+        markSectionsAuditBansActive();
+        if(!audit.initialLoaded) resetAndLoadAudit();
+        if(!bans.initialLoaded) resetAndLoadBans();
+        return;
+      }
+    }
+    // Стандартное поведение (одна активная секция)
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
     const tab = document.querySelector(`.tab[data-target="${id}"]`);
@@ -333,5 +402,17 @@
   const oldResetBans = resetAndLoadBans; resetAndLoadBans = function(){ oldResetBans(); setTimeout(ensureScrollableBans, 50); };
 
   // Первый показ вкладки
-  if(!hasAuth()) activateTab('sec-settings'); else activateTab('sec-audit');
+  if(!hasAuth()) {
+    activateTab('sec-settings');
+  } else {
+    applyLayoutMode();
+    if(wideTwo){
+      markTabsAuditBansActive();
+      markSectionsAuditBansActive();
+      if(!audit.initialLoaded) resetAndLoadAudit();
+      if(!bans.initialLoaded) resetAndLoadBans();
+    } else {
+      activateTab('sec-audit');
+    }
+  }
 })();
