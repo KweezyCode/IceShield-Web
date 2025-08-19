@@ -72,11 +72,16 @@
       <div class="controls" style="margin-bottom:8px">
         <label class="muted">type</label>
         <select id="banType">
+          <option value="">Все</option>
           <option>USERNAME</option>
-          <option selected>IP</option>
+          <option>IP</option>
           <option>SUBNET</option>
           <option>ASN</option>
         </select>
+        <input id="banFilterValue" placeholder="value содержит" style="min-width:160px">
+        <input id="banFilterReason" placeholder="reason содержит" style="min-width:160px">
+        <input id="banFilterBy" placeholder="by содержит" style="min-width:140px">
+        <label class="muted"><input type="checkbox" id="banActiveOnly"> только активные</label>
         <label class="muted">limit</label>
         <select id="banLimit">
           <option>10</option><option selected>20</option><option>50</option><option>100</option>
@@ -87,17 +92,18 @@
         <table>
           <thead>
           <tr>
-            <th>Type</th>
-            <th>Value</th>
-            <th>Reason</th>
-            <th>By</th>
-            <th>BannedAt</th>
-            <th>ExpiresAt</th>
+            <th>ID детали</th>
+            <th>Тип</th>
+            <th>Значение</th>
+            <th>Причина</th>
+            <th>Кем</th>
+            <th>Забанен</th>
+            <th>Истекает</th>
             <th>Действия</th>
           </tr>
           </thead>
           <tbody id="banTbody">
-          <tr><td colspan="7" class="muted">Загрузка…</td></tr>
+          <tr><td colspan="8" class="muted">Загрузка…</td></tr>
           </tbody>
         </table>
       </div>

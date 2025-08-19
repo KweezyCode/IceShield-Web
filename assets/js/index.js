@@ -198,20 +198,39 @@
   const audScroll=$('audScroll'); if(audScroll) audScroll.addEventListener('scroll', ()=>{ if(audScroll.scrollTop <= 30){ loadAuditPage(false); } });
 
   // ====== Баны с автоподгрузкой вверх ======
-  const bans = { type: ($('banType')&&$('banType').value)||'IP', limit: Number(($('banLimit')&&$('banLimit').value)||20), offset:0, loading:false, end:false, initialLoaded:false };
+  const bans = {
+    type: ($('banType')&&$('banType').value)||'',
+    valueLike: ($('banFilterValue')&&$('banFilterValue').value)||'',
+    reasonLike: ($('banFilterReason')&&$('banFilterReason').value)||'',
+    byLike: ($('banFilterBy')&&$('banFilterBy').value)||'',
+    activeOnly: !!($('banActiveOnly')&&$('banActiveOnly').checked),
+    limit: Number(($('banLimit')&&$('banLimit').value)||20),
+    offset:0, loading:false, end:false, initialLoaded:false
+  };
   function resetAndLoadBans(){ if(!ensureAuthOrOpenSettings()) return; bans.offset=0; bans.end=false; bans.loading=false; bans.initialLoaded=false; const tb=$('banTbody'); if(tb) tb.innerHTML=''; loadBansPage(true); }
   const banTypeEl=$('banType'); if(banTypeEl) banTypeEl.onchange=()=>{ bans.type=banTypeEl.value; resetAndLoadBans(); };
   const banLimitEl=$('banLimit'); if(banLimitEl) banLimitEl.onchange=()=>{ bans.limit=Number(banLimitEl.value)||20; resetAndLoadBans(); };
+  const banActiveEl=$('banActiveOnly'); if(banActiveEl) banActiveEl.addEventListener('change', ()=>{ bans.activeOnly=!!banActiveEl.checked; resetAndLoadBans(); });
+  let banDebounce;
+  const bfValue=$('banFilterValue'); if(bfValue) bfValue.addEventListener('input', ()=>{ clearTimeout(banDebounce); banDebounce=setTimeout(()=>{ bans.valueLike=bfValue.value.trim(); resetAndLoadBans(); }, 350); });
+  const bfReason=$('banFilterReason'); if(bfReason) bfReason.addEventListener('input', ()=>{ clearTimeout(banDebounce); banDebounce=setTimeout(()=>{ bans.reasonLike=bfReason.value.trim(); resetAndLoadBans(); }, 350); });
+  const bfBy=$('banFilterBy'); if(bfBy) bfBy.addEventListener('input', ()=>{ clearTimeout(banDebounce); banDebounce=setTimeout(()=>{ bans.byLike=bfBy.value.trim(); resetAndLoadBans(); }, 350); });
 
   async function loadBansPage(initial){
     if(bans.loading||bans.end) return 0; bans.loading=true;
     const sc = $('banScroll'); const tb = $('banTbody');
-    if(initial && tb && tb.children.length===0){ tb.innerHTML = '<tr><td colspan="7" class="muted">Загрузка…</td></tr>'; }
-    const r = await api('GET','/bans/list',{type:bans.type, limit:bans.limit, offset:bans.offset});
-    if(!r.ok){ if(tb){ const msg = r.status===401? 'Не авторизовано. Проверьте логин/пароль во вкладке Настройки.' : (r.status===0? 'Сетевая ошибка. Проверьте base URL во вкладке Настройки.' : `Ошибка загрузки (${r.status})`); tb.innerHTML = `<tr><td colspan="7" class="muted">${msg}</td></tr>`; } bans.end = true; bans.loading=false; return 0; }
+    if(initial && tb && tb.children.length===0){ tb.innerHTML = '<tr><td colspan="8" class="muted">Загрузка…</td></tr>'; }
+    const params = { limit:bans.limit, offset:bans.offset };
+    if(bans.type) params.type = bans.type;
+    if(bans.valueLike) params.value = bans.valueLike;
+    if(bans.reasonLike) params.reason = bans.reasonLike;
+    if(bans.byLike) params.bannedBy = bans.byLike;
+    if(bans.activeOnly) params.active = '1';
+    const r = await api('GET','/bans/list', params);
+    if(!r.ok){ if(tb){ const msg = r.status===401? 'Не авторизовано. Проверьте логин/пароль во вкладке Настройки.' : (r.status===0? 'Сетевая ошибка. Проверьте base URL во вкладке Настройки.' : `Ошибка загрузки (${r.status})`); tb.innerHTML = `<tr><td colspan="8" class="muted">${msg}</td></tr>`; } bans.end = true; bans.loading=false; return 0; }
     const arr = Array.isArray(r.data)? r.data: [];
     if(initial && tb) tb.innerHTML='';
-    if(arr.length===0){ if(initial && tb) tb.innerHTML = '<tr><td colspan="7" class="muted">Нет данных</td></tr>'; bans.end=true; bans.loading=false; return 0; }
+    if(arr.length===0){ if(initial && tb) tb.innerHTML = '<tr><td colspan="8" class="muted">Нет данных</td></tr>'; bans.end=true; bans.loading=false; return 0; }
     const rows = arr.slice().reverse();
     if(initial && !bans.initialLoaded){
       if(tb) tb.insertAdjacentHTML('beforeend', rows.map(renderBanRow).join(''));
@@ -241,7 +260,10 @@
     }
   }
   function renderBanRow(x){
-    return `<tr>
+    const gid = (typeof x.detailId === 'number' ? x.detailId : parseInt(x.detailId||'0',10)) || 0;
+    const gcls = 'ban-group g'+(Math.abs(gid)%12);
+    return `<tr class="${gcls}">
+      <td class="mono">${x.detailId??''}</td>
       <td>${x.type||''}</td>
       <td class="mono">${x.value||''}</td>
       <td>${x.reason||''}</td>
