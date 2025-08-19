@@ -30,3 +30,17 @@ thead th{position:sticky;top:0;background:#fafafa}
 tbody tr.row-created{background:#fff8db}    /* мягкий жёлтый */
 tbody tr.row-failed{background:#fde8e8}     /* мягкий красный */
 tbody tr.row-joined{background:#e7f7ed}     /* мягкий зелёный */
+
+/* Групповая подсветка банов по detailId — бледные пастельные цвета */
+.ban-group.g0{background:#fff7e6}
+.ban-group.g1{background:#f0f9ff}
+.ban-group.g2{background:#fef3c7}
+.ban-group.g3{background:#ecfccb}
+.ban-group.g4{background:#e0e7ff}
+.ban-group.g5{background:#fae8ff}
+.ban-group.g6{background:#d1fae5}
+.ban-group.g7{background:#fee2e2}
+.ban-group.g8{background:#e0f2fe}
+.ban-group.g9{background:#f1f5f9}
+.ban-group.g10{background:#fef9c3}
+.ban-group.g11{background:#ede9fe}
