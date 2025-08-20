@@ -334,9 +334,9 @@
   };
 
   // Проверка бана
-  const btnChkIp=$('btnChkIp'); if(btnChkIp) btnChkIp.onclick = async ()=>{ if(!ensureAuthOrOpenSettings()) return; const ip=$('chkIp').value.trim(); const r=await api('GET','/bans/check/ip',{ip}); $('chkOut').textContent = JSON.stringify(r.data, null, 2); };
-  const btnChkUser=$('btnChkUser'); if(btnChkUser) btnChkUser.onclick = async ()=>{ if(!ensureAuthOrOpenSettings()) return; const username=$('chkUser').value.trim(); const r=await api('GET','/bans/check/user',{username}); $('chkOut').textContent = JSON.stringify(r.data, null, 2); };
-  const btnChkAsn=$('btnChkAsn'); if(btnChkAsn) btnChkAsn.onclick = async ()=>{ if(!ensureAuthOrOpenSettings()) return; const asn=$('chkAsn').value.trim(); const r=await api('GET','/bans/check/asn',{asn}); $('chkOut').textContent = JSON.stringify(r.data, null, 2); };
+  const btnChkIp=$('btnChkIp'); if(btnChkIp) btnChkIp.onclick = async ()=>{ if(!ensureAuthOrOpenSettings()) return; const ip=$('chkIp').value.trim(); const r=await api('GET','/bans/check',{ip}); $('chkOut').textContent = JSON.stringify(r.data, null, 2); };
+  const btnChkUser=$('btnChkUser'); if(btnChkUser) btnChkUser.onclick = async ()=>{ if(!ensureAuthOrOpenSettings()) return; const username=$('chkUser').value.trim(); const r=await api('GET','/bans/check',{username}); $('chkOut').textContent = JSON.stringify(r.data, null, 2); };
+  const btnChkAsn=$('btnChkAsn'); if(btnChkAsn) btnChkAsn.onclick = async ()=>{ if(!ensureAuthOrOpenSettings()) return; const asn=$('chkAsn').value.trim(); const r=await api('GET','/bans/check',{asn}); $('chkOut').textContent = JSON.stringify(r.data, null, 2); };
 
   // ====== Пользователи ======
   const btnChangePass=$('btnChangePass'); if(btnChangePass) btnChangePass.onclick = async ()=>{
