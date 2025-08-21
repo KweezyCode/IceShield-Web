@@ -48,3 +48,16 @@ tbody tr.row-joined{background:#e7f7ed}     /* мягкий зелёный */
 .ban-group.g9{background:#f1f5f9}
 .ban-group.g10{background:#fef9c3}
 .ban-group.g11{background:#ede9fe}
+
+/* Контекстное меню */
+.ctx-menu{position:fixed;z-index:9999;min-width:220px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;display:none}
+.ctx-menu.open{display:block}
+.ctx-menu button{display:block;width:100%;text-align:left;background:transparent;color:inherit;border:0;padding:8px 10px;border-radius:6px;cursor:pointer}
+.ctx-menu button:hover{background:#f3f4f6}
+.ctx-menu .sep{height:1px;background:var(--border);margin:6px 4px}
+.ctx-menu button:disabled{opacity:.5;cursor:default}
+
+/* Тост уведомлений */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#0b1020;color:#e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:9999;opacity:.98}
+.toast.ok{background:#0a7f2e;color:#fff}
+.toast.err{background:#b00020;color:#fff}

@@ -34,6 +34,15 @@
   function ipFromNum(n){ if(n==null) return ''; let v = Number(n); if(!isFinite(v) || v<0) return ''; v = (v >>> 0); return [(v>>>24)&255,(v>>>16)&255,(v>>>8)&255,(v)&255].join('.'); }
   function setStatus(el,msg,ok){ el.textContent = msg; el.className = 'status ' + (ok===true?'ok':ok===false?'err':''); }
 
+  // Простые уведомления
+  function toast(msg, kind){
+    const t = document.createElement('div');
+    t.className = 'toast'+(kind? ' '+kind:'');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.remove(); }, 2200);
+  }
+
   // ====== Навигация вкладок ======
   function activateTab(id){
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -119,12 +128,8 @@
   }
   function renderAuditRow(x){
     const rowCls = auditRowClass(x.joincode);
-    return `<tr class="${rowCls}">
-      <td class="mono">${x.id??''}</td>
-      <td>${x.username??''}</td>
-      <td class="mono">${ipFromNum(x.ipNum)}</td>
-      <td>${fmtDate(x.createdAt)}</td>
-    </tr>`;
+    const uname = x.username??'';
+    return `<tr class="${rowCls}" data-username="${String(uname).replace(/&/g,'&amp;').replace(/\"/g,'&quot;')}">\n      <td class="mono">${x.id??''}</td>\n      <td>${uname}</td>\n      <td class="mono">${ipFromNum(x.ipNum)}</td>\n      <td>${fmtDate(x.createdAt)}</td>\n    </tr>`;
   }
   const audScroll=$('audScroll'); if(audScroll) audScroll.addEventListener('scroll', ()=>{ if(audScroll.scrollTop <= 30){ loadAuditPage(false); } });
 
@@ -150,7 +155,7 @@
   async function loadBansPage(initial){
     if(bans.loading||bans.end) return 0; bans.loading=true;
     const sc = $('banScroll'); const tb = $('banTbody');
-    if(initial && tb && tb.children.length===0){ tb.innerHTML = '<tr><td colspan="8" class="muted">Загрузка…</td></tr>'; }
+    if(initial && tb && tb.children.length===0){ tb.innerHTML = '<tr><td colspan="7" class="muted">Загрузка…</td></tr>'; }
     const params = { limit:bans.limit, offset:bans.offset };
     if(bans.type) params.type = bans.type;
     if(bans.valueLike) params.value = bans.valueLike;
@@ -158,22 +163,20 @@
     if(bans.byLike) params.bannedBy = bans.byLike;
     if(bans.activeOnly) params.active = '1';
     const r = await api('GET','/bans/list', params);
-    if(!r.ok){ if(tb){ const msg = r.status===401? 'Не авторизовано. Проверьте логин/пароль во вкладке Настройки.' : (r.status===0? 'Сетевая ошибка. Проверьте base URL во вкладке Настройки.' : `Ошибка загрузки (${r.status})`); tb.innerHTML = `<tr><td colspan="8" class="muted">${msg}</td></tr>`; } bans.end = true; bans.loading=false; return 0; }
+    if(!r.ok){ if(tb){ const msg = r.status===401? 'Не авторизовано. Проверьте логин/пароль во вкладке Настройки.' : (r.status===0? 'Сетевая ошибка. Проверьте base URL во вкладке Настройки.' : `Ошибка загрузки (${r.status})`); tb.innerHTML = `<tr><td colspan="7" class="muted">${msg}</td></tr>`; } bans.end = true; bans.loading=false; return 0; }
     const arr = Array.isArray(r.data)? r.data: [];
     if(initial && tb) tb.innerHTML='';
-    if(arr.length===0){ if(initial && tb) tb.innerHTML = '<tr><td colspan="8" class="muted">Нет данных</td></tr>'; bans.end=true; bans.loading=false; return 0; }
+    if(arr.length===0){ if(initial && tb) tb.innerHTML = '<tr><td colspan="7" class="muted">Нет данных</td></tr>'; bans.end=true; bans.loading=false; return 0; }
     const rows = arr.slice().reverse();
     if(initial && !bans.initialLoaded){
       if(tb) tb.insertAdjacentHTML('beforeend', rows.map(renderBanRow).join(''));
       await new Promise(rf=>requestAnimationFrame(rf));
       if(sc) sc.scrollTop = sc.scrollHeight;
-      bindBanDeleteButtons();
       bans.initialLoaded=true;
     } else {
       const prev = sc? sc.scrollHeight:0;
       if(tb) tb.insertAdjacentHTML('afterbegin', rows.map(renderBanRow).join(''));
       const next = sc? sc.scrollHeight:0; if(sc) sc.scrollTop += (next - prev);
-      bindBanDeleteButtons();
     }
     bans.offset += arr.length;
     if(arr.length < bans.limit) bans.end = true;
@@ -194,43 +197,11 @@
     const gid = (typeof x.detailId === 'number' ? x.detailId : parseInt(x.detailId||'0',10)) || 0;
     const gcls = 'ban-group g'+(Math.abs(gid)%12);
     const hasTypeAndEntry = (x && x.type && (x.entryId!==undefined && x.entryId!==null && String(x.entryId).length>0));
-    const btnType = hasTypeAndEntry ? `<button class="secondary" data-del-type="${x.type}" data-del-entry="${x.entryId}">Удалить(type+id)</button>` : '';
-    return `<tr class="${gcls}">
-      <td class="mono">${x.detailId??''}</td>
-      <td>${x.type||''}</td>
-      <td class="mono">${x.value||''}</td>
-      <td>${x.reason||''}</td>
-      <td>${x.bannedBy||''}</td>
-      <td>${fmtDate(x.bannedAt)}</td>
-      <td>${x.expiresAt?fmtDate(x.expiresAt):''}</td>
-      <td>
-        <button class="secondary" data-del-detail="${x.detailId}">Удалить(detail)</button>
-        ${btnType}
-      </td>
-    </tr>`;
+    const attrs = `data-detail-id="${x.detailId??''}" data-type="${x.type||''}" data-entry-id="${hasTypeAndEntry?x.entryId:''}"`;
+    return `<tr class="${gcls}" ${attrs}>\n      <td class="mono">${x.detailId??''}</td>\n      <td>${x.type||''}</td>\n      <td class="mono">${x.value||''}</td>\n      <td>${x.reason||''}</td>\n      <td>${x.bannedBy||''}</td>\n      <td>${fmtDate(x.bannedAt)}</td>\n      <td>${x.expiresAt?fmtDate(x.expiresAt):''}</td>\n    </tr>`;
   }
   function bindBanDeleteButtons(){
-    // Удаление по detailId через /bans/by-detail?detailId=...
-    document.querySelectorAll('#banTbody button[data-del-detail]').forEach(btn=>{
-      if(btn._bound) return; btn._bound = true;
-      btn.addEventListener('click', async ()=>{
-        const id = btn.getAttribute('data-del-detail');
-        btn.disabled = true; const old = btn.textContent; btn.textContent='Удаление…';
-        try{ await api('DELETE','/bans/by-detail', { detailId: id }); resetAndLoadBans(); }
-        finally { btn.disabled=false; btn.textContent=old; }
-      });
-    });
-    // Удаление по type+entryId через /bans/by-type?type=...&entryId=...
-    document.querySelectorAll('#banTbody button[data-del-type]').forEach(btn=>{
-      if(btn._bound2) return; btn._bound2 = true;
-      btn.addEventListener('click', async ()=>{
-        const type = btn.getAttribute('data-del-type');
-        const entryId = btn.getAttribute('data-del-entry');
-        btn.disabled = true; const old = btn.textContent; btn.textContent='Удаление…';
-        try{ await api('DELETE','/bans/by-type', { type, entryId }); resetAndLoadBans(); }
-        finally { btn.disabled=false; btn.textContent=old; }
-      });
-    });
+    // Оставлено для обратной совместимости: теперь не используется (контекстное меню)
   }
   const banScroll=$('banScroll'); if(banScroll) banScroll.addEventListener('scroll', ()=>{ if(banScroll.scrollTop <= 30){ loadBansPage(false); } });
 
@@ -366,6 +337,137 @@
       if(r.ok) $('chPass').value='';
     } catch(e){ if(us) setStatus(us,'Ошибка запроса', false); }
   };
+
+  // ====== Контекстное меню для строк таблиц ======
+  let ctxMenuEl;
+  function ensureCtxMenu(){
+    if(!ctxMenuEl){
+      ctxMenuEl = document.createElement('div');
+      ctxMenuEl.className = 'ctx-menu';
+      document.body.appendChild(ctxMenuEl);
+    }
+    return ctxMenuEl;
+  }
+  function hideCtxMenu(){ if(ctxMenuEl){ ctxMenuEl.classList.remove('open'); ctxMenuEl.style.left='-9999px'; ctxMenuEl.innerHTML=''; } }
+  function showCtxMenu(items, x, y){
+    const el = ensureCtxMenu();
+    el.innerHTML = '';
+    items.forEach((it, idx)=>{
+      if(!it) return; // skip
+      if(it.type === 'sep'){ const s=document.createElement('div'); s.className='sep'; el.appendChild(s); return; }
+      const b = document.createElement('button');
+      b.textContent = it.label || ('Действие '+(idx+1));
+      if(it.disabled) b.disabled = true;
+      b.addEventListener('click', async ()=>{
+        hideCtxMenu();
+        try{ await it.onClick && it.onClick(); }catch(e){ console.error(e); toast('Ошибка действия','err'); }
+      });
+      el.appendChild(b);
+    });
+    el.classList.add('open');
+    // позиционирование с учётом границ окна
+    const pad = 4;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    el.style.left = x+'px'; el.style.top = y+'px';
+    // сначала отрисуем, потом поправим
+    requestAnimationFrame(()=>{
+      const rect = el.getBoundingClientRect();
+      let nx = x, ny = y;
+      if(rect.right > vw - pad) nx = Math.max(pad, vw - rect.width - pad);
+      if(rect.bottom > vh - pad) ny = Math.max(pad, vh - rect.height - pad);
+      el.style.left = nx+'px';
+      el.style.top = ny+'px';
+    });
+  }
+  // глобальные закрыватели
+  document.addEventListener('mousedown', (e)=>{ if(ctxMenuEl && ctxMenuEl.classList.contains('open')){ if(!ctxMenuEl.contains(e.target)) hideCtxMenu(); } });
+  window.addEventListener('scroll', hideCtxMenu, true);
+  window.addEventListener('resize', hideCtxMenu);
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideCtxMenu(); });
+
+  // Контекстное меню: Баны
+  const banTbody = $('banTbody');
+  if(banTbody){
+    banTbody.addEventListener('contextmenu', (e)=>{
+      const tr = e.target && (e.target.closest ? e.target.closest('tr') : null);
+      if(!tr) return;
+      e.preventDefault();
+      if(!ensureAuthOrOpenSettings()) return;
+      const detailId = tr.getAttribute('data-detail-id');
+      const type = tr.getAttribute('data-type');
+      const entryId = tr.getAttribute('data-entry-id');
+      const items = [];
+      if(detailId){
+        items.push({ label: `Удалить бан (detailId ${detailId})`, onClick: async ()=>{ const r=await api('DELETE','/bans/by-detail',{ detailId }); if(r.ok){ toast('Бан удалён','ok'); resetAndLoadBans(); } else { toast('Ошибка удаления ('+r.status+')','err'); } } });
+      }
+      if(type && entryId){
+        items.push({ label: `Удалить бан (type ${type} + id ${entryId})`, onClick: async ()=>{ const r=await api('DELETE','/bans/by-type',{ type, entryId }); if(r.ok){ toast('Бан удалён','ok'); resetAndLoadBans(); } else { toast('Ошибка удаления ('+r.status+')','err'); } } });
+      }
+      if(items.length===0){ items.push({ label:'Нет действий', onClick: ()=>{}, disabled:true }); }
+      showCtxMenu(items, e.clientX, e.clientY);
+    });
+    // Левый клик тоже открывает меню
+    banTbody.addEventListener('click', (e)=>{
+      const tr = e.target && (e.target.closest ? e.target.closest('tr') : null);
+      if(!tr) return;
+      if(!ensureAuthOrOpenSettings()) return;
+      const detailId = tr.getAttribute('data-detail-id');
+      const type = tr.getAttribute('data-type');
+      const entryId = tr.getAttribute('data-entry-id');
+      const items = [];
+      if(detailId){
+        items.push({ label: `Удалить бан (detailId ${detailId})`, onClick: async ()=>{ const r=await api('DELETE','/bans/by-detail',{ detailId }); if(r.ok){ toast('Бан удалён','ok'); resetAndLoadBans(); } else { toast('Ошибка удаления ('+r.status+')','err'); } } });
+      }
+      if(type && entryId){
+        items.push({ label: `Удалить бан (type ${type} + id ${entryId})`, onClick: async ()=>{ const r=await api('DELETE','/bans/by-type',{ type, entryId }); if(r.ok){ toast('Бан удалён','ok'); resetAndLoadBans(); } else { toast('Ошибка удаления ('+r.status+')','err'); } } });
+      }
+      if(items.length===0){ items.push({ label:'Нет действий', onClick: ()=>{}, disabled:true }); }
+      showCtxMenu(items, e.clientX, e.clientY);
+    });
+  }
+
+  // Контекстное меню: Аудит
+  const audTbody = $('audTbody');
+  if(audTbody){
+    audTbody.addEventListener('contextmenu', (e)=>{
+      const tr = e.target && (e.target.closest ? e.target.closest('tr') : null);
+      if(!tr) return;
+      e.preventDefault();
+      if(!ensureAuthOrOpenSettings()) return;
+      const username = tr.getAttribute('data-username') || (tr.children[1] && tr.children[1].textContent) || '';
+      const items = [];
+      if(username){
+        items.push({ label: `Заблокировать пользователя “${username}”`, onClick: async ()=>{
+          const r = await api('POST','/bans/add', null, { type:'USERNAME', value: username });
+          if(r.ok){ toast('Пользователь заблокирован','ok'); resetAndLoadBans(); } else { toast('Ошибка блокировки ('+r.status+')','err'); }
+        }});
+        items.push({ type:'sep' });
+        items.push({ label: 'Сменить пароль…', onClick: ()=>{ activateTab('sec-users'); const chU=$('chUser'); if(chU) chU.value = username; const chP=$('chPass'); if(chP) chP.focus(); }});
+      } else {
+        items.push({ label:'Нет данных пользователя', onClick: ()=>{}, disabled:true });
+      }
+      showCtxMenu(items, e.clientX, e.clientY);
+    });
+    // Левый клик тоже открывает меню
+    audTbody.addEventListener('click', (e)=>{
+      const tr = e.target && (e.target.closest ? e.target.closest('tr') : null);
+      if(!tr) return;
+      if(!ensureAuthOrOpenSettings()) return;
+      const username = tr.getAttribute('data-username') || (tr.children[1] && tr.children[1].textContent) || '';
+      const items = [];
+      if(username){
+        items.push({ label: `Заблокировать пользователя “${username}”`, onClick: async ()=>{
+          const r = await api('POST','/bans/add', null, { type:'USERNAME', value: username });
+          if(r.ok){ toast('Пользователь заблокирован','ok'); resetAndLoadBans(); } else { toast('Ошибка блокировки ('+r.status+')','err'); }
+        }});
+        items.push({ type:'sep' });
+        items.push({ label: 'Сменить пароль…', onClick: ()=>{ activateTab('sec-users'); const chU=$('chUser'); if(chU) chU.value = username; const chP=$('chPass'); if(chP) chP.focus(); }});
+      } else {
+        items.push({ label:'Нет данных пользователя', onClick: ()=>{}, disabled:true });
+      }
+      showCtxMenu(items, e.clientX, e.clientY);
+    });
+  }
 
   // Хуки автодогрузки при коротких списках (до первого activateTab)
   const oldResetAudit = resetAndLoadAudit; resetAndLoadAudit = function(){ oldResetAudit(); setTimeout(ensureScrollableAudit, 50); };
