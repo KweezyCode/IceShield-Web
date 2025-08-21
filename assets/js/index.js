@@ -193,6 +193,8 @@
   function renderBanRow(x){
     const gid = (typeof x.detailId === 'number' ? x.detailId : parseInt(x.detailId||'0',10)) || 0;
     const gcls = 'ban-group g'+(Math.abs(gid)%12);
+    const hasTypeAndEntry = (x && x.type && (x.entryId!==undefined && x.entryId!==null && String(x.entryId).length>0));
+    const btnType = hasTypeAndEntry ? `<button class="secondary" data-del-type="${x.type}" data-del-entry="${x.entryId}">Удалить(type+id)</button>` : '';
     return `<tr class="${gcls}">
       <td class="mono">${x.detailId??''}</td>
       <td>${x.type||''}</td>
@@ -201,16 +203,31 @@
       <td>${x.bannedBy||''}</td>
       <td>${fmtDate(x.bannedAt)}</td>
       <td>${x.expiresAt?fmtDate(x.expiresAt):''}</td>
-      <td><button class="secondary" data-del="${x.detailId}">Удалить</button></td>
+      <td>
+        <button class="secondary" data-del-detail="${x.detailId}">Удалить(detail)</button>
+        ${btnType}
+      </td>
     </tr>`;
   }
   function bindBanDeleteButtons(){
-    document.querySelectorAll('#banTbody button[data-del]').forEach(btn=>{
+    // Удаление по detailId через /bans/by-detail?detailId=...
+    document.querySelectorAll('#banTbody button[data-del-detail]').forEach(btn=>{
       if(btn._bound) return; btn._bound = true;
       btn.addEventListener('click', async ()=>{
-        const id = btn.getAttribute('data-del');
+        const id = btn.getAttribute('data-del-detail');
         btn.disabled = true; const old = btn.textContent; btn.textContent='Удаление…';
-        try{ await api('DELETE','/bans/by-detail/'+encodeURIComponent(id)); resetAndLoadBans(); }
+        try{ await api('DELETE','/bans/by-detail', { detailId: id }); resetAndLoadBans(); }
+        finally { btn.disabled=false; btn.textContent=old; }
+      });
+    });
+    // Удаление по type+entryId через /bans/by-type?type=...&entryId=...
+    document.querySelectorAll('#banTbody button[data-del-type]').forEach(btn=>{
+      if(btn._bound2) return; btn._bound2 = true;
+      btn.addEventListener('click', async ()=>{
+        const type = btn.getAttribute('data-del-type');
+        const entryId = btn.getAttribute('data-del-entry');
+        btn.disabled = true; const old = btn.textContent; btn.textContent='Удаление…';
+        try{ await api('DELETE','/bans/by-type', { type, entryId }); resetAndLoadBans(); }
         finally { btn.disabled=false; btn.textContent=old; }
       });
     });
