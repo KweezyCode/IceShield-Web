@@ -8,28 +8,34 @@
 </head>
 <body>
 <div class="wrap">
-  <header class="card">
-    <div class="brand">IceShield – Панель управления</div>
-    <div class="tabs">
-      <div class="tab" data-target="sec-settings">Настройки</div>
-      <div class="tab" data-target="sec-audit">Аудит</div>
-      <div class="tab" data-target="sec-bans">Баны</div>
-      <div class="tab" data-target="sec-users">Пользователи</div>
+  <header class="card topbar">
+    <div class="topbar-row">
+      <div class="brand">IceShield – Панель управления</div>
+      <div class="topbar-actions">
+        <span id="apiBadge" class="badge muted" title="Статус подключения к API">API: —</span>
+        <button id="btnTheme" class="secondary" type="button" title="Переключить тему">Тема</button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Навигация">
+      <button class="tab" data-target="sec-settings" type="button">Настройки</button>
+      <button class="tab" data-target="sec-audit" type="button">Аудит</button>
+      <button class="tab" data-target="sec-bans" type="button">Баны</button>
+      <button class="tab" data-target="sec-users" type="button">Пользователи</button>
     </div>
   </header>
 
   <!-- Настройки -->
   <section id="sec-settings" class="section">
     <div class="card">
-      <h2>Подключение к API</h2>
+      <h2>Подключение</h2>
       <div class="controls">
-        <input id="baseUrl" placeholder="/api или http://localhost:8080/api" style="min-width:260px">
-        <input id="authUser" placeholder="логин">
-        <input id="authPass" type="password" placeholder="пароль">
+        <input id="baseUrl" aria-label="Base URL API" placeholder="/api или http://localhost:8080/api" style="min-width:260px" autocomplete="url">
+        <input id="authUser" aria-label="Логин" placeholder="логин" autocomplete="username">
+        <input id="authPass" aria-label="Пароль" type="password" placeholder="пароль" autocomplete="current-password">
       </div>
       <div class="controls" style="margin-top:8px">
-        <button id="saveCfg">Сохранить</button>
-        <button class="secondary" id="testCfg">Проверить</button>
+        <button id="saveCfg" type="button">Сохранить</button>
+        <button class="secondary" id="testCfg" type="button">Проверить API</button>
         <span id="cfgStatus" class="status muted"></span>
       </div>
       <div class="muted" style="margin-top:8px">Данные сохраняются в браузере (localStorage). Без логина/пароля другие вкладки закрыты.</div>
@@ -39,56 +45,72 @@
   <!-- Аудит -->
   <section id="sec-audit" class="section">
     <div class="card">
-      <h2>Аудит логинов</h2>
+      <div class="section-head">
+        <h2>Аудит логинов</h2>
+        <div class="section-actions">
+          <button id="audRefresh" class="secondary" type="button" title="Обновить список">Обновить</button>
+          <label class="muted"><input type="checkbox" id="audAuto" checked> авто</label>
+        </div>
+      </div>
       <div class="controls" style="margin-bottom:8px">
-        <input id="audSearch" placeholder="username или 1.2.3.4" style="min-width:260px">
-        <select id="audLimit">
+        <input id="audSearch" aria-label="Поиск по аудиту" placeholder="Поиск: username или 1.2.3.4" style="min-width:260px">
+        <select id="audLimit" title="Сколько записей подгружать за раз">
           <option selected>10</option><option>20</option><option>50</option><option>100</option>
         </select>
         <span class="muted">Прокрутите вверх для подзагрузки старых записей</span>
       </div>
-      <div id="audScroll" style="overflow:auto;max-height:420px">
+      <div id="audScroll" class="scrollbox">
         <table>
           <thead>
           <tr>
-            <th>ID</th>
+            <th class="center">Проверки</th>
             <th>Username</th>
             <th>IP</th>
+            <th>Country</th>
+            <th>ASN</th>
             <th>Created</th>
           </tr>
           </thead>
           <tbody id="audTbody">
-          <tr><td colspan="4" class="muted">Загрузка…</td></tr>
+          <tr><td colspan="6" class="muted">Загрузка…</td></tr>
           </tbody>
         </table>
       </div>
+      <div class="hintbar muted" id="audHint"></div>
     </div>
   </section>
 
   <!-- Баны -->
   <section id="sec-bans" class="section">
     <div class="card">
-      <h2>Баны – список и операции</h2>
+      <div class="section-head">
+        <h2>Баны</h2>
+        <div class="section-actions">
+          <button id="banRefresh" class="secondary" type="button" title="Обновить список">Обновить</button>
+          <label class="muted"><input type="checkbox" id="banAuto" checked> авто</label>
+        </div>
+      </div>
+
       <div class="controls" style="margin-bottom:8px">
-        <label class="muted">type</label>
-        <select id="banType">
+        <label class="muted">Тип</label>
+        <select id="banType" title="Фильтр по типу">
           <option value="">Все</option>
           <option>USERNAME</option>
           <option>IP</option>
           <option>SUBNET</option>
           <option>ASN</option>
         </select>
-        <input id="banFilterValue" placeholder="value содержит" style="min-width:160px">
-        <input id="banFilterReason" placeholder="reason содержит" style="min-width:160px">
-        <input id="banFilterBy" placeholder="by содержит" style="min-width:140px">
+        <input id="banFilterValue" aria-label="Фильтр: значение" placeholder="Значение содержит" style="min-width:160px">
+        <input id="banFilterReason" aria-label="Фильтр: причина" placeholder="Причина содержит" style="min-width:160px">
+        <input id="banFilterBy" aria-label="Фильтр: кем выдан" placeholder="Кем выдан содержит" style="min-width:140px">
         <label class="muted"><input type="checkbox" id="banActiveOnly"> только активные</label>
-        <label class="muted">limit</label>
-        <select id="banLimit">
+        <label class="muted">Пачка</label>
+        <select id="banLimit" title="Сколько записей подгружать за раз">
           <option>10</option><option selected>20</option><option>50</option><option>100</option>
         </select>
         <span class="muted">Прокрутите вверх для подзагрузки старых записей</span>
       </div>
-      <div id="banScroll" style="overflow:auto;max-height:420px">
+      <div id="banScroll" class="scrollbox">
         <table>
           <thead>
           <tr>
@@ -106,51 +128,52 @@
           </tbody>
         </table>
       </div>
+      <div class="hintbar muted" id="banHint"></div>
     </div>
 
     <div class="grid">
       <div class="card">
         <h3>Добавить бан</h3>
         <div class="controls">
-          <select id="addType">
+          <select id="addType" title="Тип бана">
             <option>USERNAME</option>
             <option selected>IP</option>
             <option>SUBNET</option>
             <option>ASN</option>
           </select>
-          <input id="addValue" placeholder="user1 | 1.2.3.4 | 1.2.3.0/24 | AS12345" style="min-width:220px">
+          <input id="addValue" aria-label="Значение для бана" placeholder="user1 | 1.2.3.4 | 1.2.3.0/24 | AS12345" style="min-width:220px">
         </div>
         <div class="controls">
-          <input id="addReason" placeholder="причина (опц.)" style="min-width:220px">
-          <!-- пресеты срока + опциональная ручная дата -->
-          <select id="addExpirePreset" title="срок">
+          <input id="addReason" aria-label="Причина бана" placeholder="Причина (необязательно)" style="min-width:220px">
+          <select id="addExpirePreset" title="Срок">
             <option value="NONE" selected>Без срока</option>
             <option value="WEEK">На неделю</option>
             <option value="MONTH">На месяц</option>
             <option value="YEAR">На год</option>
             <option value="CUSTOM">Указать дату…</option>
           </select>
-          <input id="addExpIso" type="datetime-local" title="истекает (локально)" disabled>
+          <input id="addExpIso" type="datetime-local" aria-label="Дата истечения" title="Истекает (локально)" disabled>
         </div>
         <div class="controls">
-          <button id="btnAdd">POST /bans/add</button>
+          <button id="btnAdd" type="button">Добавить</button>
           <span id="addStatus" class="status muted"></span>
         </div>
+        <div class="muted">Подсказка: клик по строке в таблице открывает меню действий (удалить/скопировать).</div>
       </div>
 
       <div class="card">
         <h3>Проверка бана</h3>
         <div class="controls">
-          <input id="chkIp" placeholder="IP: 1.2.3.4">
-          <button class="secondary" id="btnChkIp">Проверить IP</button>
+          <input id="chkIp" aria-label="Проверка: IP" placeholder="IP: 1.2.3.4">
+          <button class="secondary" id="btnChkIp" type="button">Проверить IP</button>
         </div>
         <div class="controls">
-          <input id="chkUser" placeholder="Username: user1">
-          <button class="secondary" id="btnChkUser">Проверить пользователя</button>
+          <input id="chkUser" aria-label="Проверка: Username" placeholder="Username: user1">
+          <button class="secondary" id="btnChkUser" type="button">Проверить пользователя</button>
         </div>
         <div class="controls">
-          <input id="chkAsn" placeholder="ASN: 12345 или AS12345">
-          <button class="secondary" id="btnChkAsn">Проверить ASN</button>
+          <input id="chkAsn" aria-label="Проверка: ASN" placeholder="ASN: 12345 или AS12345">
+          <button class="secondary" id="btnChkAsn" type="button">Проверить ASN</button>
         </div>
         <pre id="chkOut" class="mono" style="background:#0b1020;color:#e2e8f0;padding:10px;border-radius:8px;max-height:180px;overflow:auto">Результат появится здесь…</pre>
       </div>
@@ -160,17 +183,25 @@
   <!-- Пользователи -->
   <section id="sec-users" class="section">
     <div class="card small">
-      <h2>Сменить пароль пользователя</h2>
+      <h2>Смена пароля пользователя</h2>
       <div class="controls">
-        <input id="chUser" placeholder="username" style="min-width:220px">
-        <input id="chPass" type="password" placeholder="new password" style="min-width:220px">
-        <button id="btnChangePass">Сменить</button>
+        <input id="chUser" aria-label="Имя пользователя" placeholder="username" style="min-width:220px" autocomplete="username">
+        <input id="chPass" aria-label="Новый пароль" type="password" placeholder="новый пароль" style="min-width:220px" autocomplete="new-password">
+        <button id="btnChangePass" type="button">Сменить</button>
         <span id="userStatus" class="status muted"></span>
       </div>
     </div>
   </section>
 </div>
 
-<script src="assets/js/index.js"></script>
+<!-- Нижняя навигация для мобильных -->
+<nav class="bottom-nav" aria-label="Навигация снизу">
+  <button class="btab" data-target="sec-settings" type="button">Настройки</button>
+  <button class="btab" data-target="sec-audit" type="button">Аудит</button>
+  <button class="btab" data-target="sec-bans" type="button">Баны</button>
+  <button class="btab" data-target="sec-users" type="button">Юзеры</button>
+</nav>
+
+<script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

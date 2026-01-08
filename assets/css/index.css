@@ -1,63 +1,126 @@
-:root{--bg:#f7f8fa;--fg:#1f2937;--muted:#6b7280;--card:#fff;--border:#e5e7eb;--accent:#111827;--ok:#0a7f2e;--err:#b00020;}
+:root{--bg:#f6f7fb;--fg:#0f172a;--muted:#64748b;--card:#ffffff;--border:#e2e8f0;--accent:#2563eb;--accent-fg:#ffffff;--ok:#16a34a;--err:#e11d48;--shadow:0 16px 40px rgba(15, 23, 42, .08);--radius:14px;--ring:0 0 0 3px rgba(37, 99, 235, .18)}
+html{color-scheme:light}
+html[data-theme="dark"]{color-scheme:dark;--bg:#070a12;--fg:#e5e7eb;--muted:#94a3b8;--card:#0b1220;--border:#172036;--accent:#60a5fa;--accent-fg:#06101f;--ok:#34d399;--err:#fb7185;--shadow:0 18px 52px rgba(0,0,0,.45);--ring:0 0 0 3px rgba(96, 165, 250, .22)}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial}
-.wrap{max-width:1500px;margin:0 auto;padding:8px}
+
+/* Ширина: на 21:9 используем больше пространства, но оставляем комфортные поля */
+.wrap{max-width:1800px;margin:0 auto;padding:10px clamp(10px, 2.2vw, 28px);padding-bottom:84px}
+
 header{position:sticky;top:0;background:var(--bg);z-index:10;padding:10px 0}
 .brand{font-weight:700}
-.tabs{display:flex;gap:8px;margin-top:8px}
-.tab{padding:8px 12px;border:1px solid var(--border);border-radius:20px;background:#fff;cursor:pointer}
-.tab.active{background:var(--accent);color:#fff}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin:8px 0}
-/* Убираем верхний внешний отступ у шапки, чтобы сверху страницы был единый небольшой зазор */
-header.card{margin:0 0 8px}
+
+.topbar{backdrop-filter:saturate(140%) blur(10px)}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+.tabs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tab{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:color-mix(in oklab, var(--card) 92%, transparent);cursor:pointer;color:inherit}
+.tab.active{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+html[data-theme="dark"] .tab.active{color:var(--accent-fg)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin:10px 0;box-shadow:var(--shadow)}
+header.card{margin:0 0 10px}
+
 h2{margin:0 0 8px;font-size:18px}
 h3{margin:8px 0 6px;font-size:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px}
-/* Карточки внутри сетки не имеют внешних отступов — расстояние задаёт только gap */
+
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.section-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
 .grid > .card{margin:0}
+
 .status{font-size:12px;margin-left:8px}
 .status.ok{color:var(--ok)}
 .status.err{color:var(--err)}
 .muted{color:var(--muted)}
+
 .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 input,select,button{font:inherit}
-input,select{padding:8px;border:1px solid var(--border);border-radius:6px;background:#fff}
-button{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--accent);color:#fff;cursor:pointer}
-button.secondary{background:#fff;color:#111}
+input,select{padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit;min-height:36px}
+input:focus,select:focus,button:focus{outline:none;box-shadow:var(--ring)}
+button{padding:9px 12px;border:1px solid var(--border);border-radius:12px;background:var(--accent);color:var(--accent-fg);cursor:pointer;min-height:36px}
+button.secondary{background:transparent;color:inherit}
+button:disabled{opacity:.55;cursor:default}
+
+.badge{padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:transparent;font-size:12px}
+.badge.ok{border-color:color-mix(in oklab, var(--ok) 35%, var(--border));color:var(--ok)}
+.badge.err{border-color:color-mix(in oklab, var(--err) 35%, var(--border));color:var(--err)}
+
+/* Скролл-контейнеры таблиц: стабильная высота и корректный sticky header */
+.scrollbox{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:12px}
+.scrollbox table{min-width:860px}
+
 table{width:100%;border-collapse:collapse}
 th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
-thead th{position:sticky;top:0;background:#fafafa}
+thead th{position:sticky;top:0;background:color-mix(in oklab, var(--card) 88%, var(--bg));z-index:1}
+
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .section{display:none}
 .section.active{display:block}
 
-/* Подсветка строк аудита по joincode — бледные цвета */
-tbody tr.row-created{background:#fff8db}    /* мягкий жёлтый */
-tbody tr.row-failed{background:#fde8e8}     /* мягкий красный */
-tbody tr.row-joined{background:#e7f7ed}     /* мягкий зелёный */
+/* Подсветки */
+tbody tr.row-created{background:color-mix(in oklab, #fef3c7 28%, var(--card))}
+tbody tr.row-failed{background:color-mix(in oklab, #fecaca 22%, var(--card))}
+tbody tr.row-joined{background:color-mix(in oklab, #bbf7d0 20%, var(--card))}
 
-/* Групповая подсветка банов по detailId — бледные пастельные цвета */
-.ban-group.g0{background:#fff7e6}
-.ban-group.g1{background:#f0f9ff}
-.ban-group.g2{background:#fef3c7}
-.ban-group.g3{background:#ecfccb}
-.ban-group.g4{background:#e0e7ff}
-.ban-group.g5{background:#fae8ff}
-.ban-group.g6{background:#d1fae5}
-.ban-group.g7{background:#fee2e2}
-.ban-group.g8{background:#e0f2fe}
-.ban-group.g9{background:#f1f5f9}
-.ban-group.g10{background:#fef9c3}
-.ban-group.g11{background:#ede9fe}
+.ban-group.g0{background:color-mix(in oklab, #fff7e6 65%, var(--card))}
+.ban-group.g1{background:color-mix(in oklab, #f0f9ff 65%, var(--card))}
+.ban-group.g2{background:color-mix(in oklab, #fef3c7 65%, var(--card))}
+.ban-group.g3{background:color-mix(in oklab, #ecfccb 65%, var(--card))}
+.ban-group.g4{background:color-mix(in oklab, #e0e7ff 65%, var(--card))}
+.ban-group.g5{background:color-mix(in oklab, #fae8ff 65%, var(--card))}
+.ban-group.g6{background:color-mix(in oklab, #d1fae5 65%, var(--card))}
+.ban-group.g7{background:color-mix(in oklab, #fee2e2 65%, var(--card))}
+.ban-group.g8{background:color-mix(in oklab, #e0f2fe 65%, var(--card))}
+.ban-group.g9{background:color-mix(in oklab, #f1f5f9 65%, var(--card))}
+.ban-group.g10{background:color-mix(in oklab, #fef9c3 65%, var(--card))}
+.ban-group.g11{background:color-mix(in oklab, #ede9fe 65%, var(--card))}
 
 /* Контекстное меню */
-.ctx-menu{position:fixed;z-index:9999;min-width:220px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;display:none}
+.ctx-menu{position:fixed;z-index:9999;min-width:240px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:6px;display:none}
 .ctx-menu.open{display:block}
-.ctx-menu button{display:block;width:100%;text-align:left;background:transparent;color:inherit;border:0;padding:8px 10px;border-radius:6px;cursor:pointer}
-.ctx-menu button:hover{background:#f3f4f6}
-.ctx-menu .sep{height:1px;background:var(--border);margin:6px 4px}
+.ctx-menu button{display:block;width:100%;text-align:left;background:transparent;color:inherit;border:0;padding:9px 10px;border-radius:10px;cursor:pointer}
+.ctx-menu button:hover{background:color-mix(in oklab, var(--card) 75%, var(--bg))}
+.ctx-menu .sep{height:1px;background:var(--border);margin:6px 6px}
 .ctx-menu button:disabled{opacity:.5;cursor:default}
 
-/* Тост уведомлений */
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#0b1020;color:#e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:9999;opacity:.98}
-.toast.ok{background:#0a7f2e;color:#fff}
-.toast.err{background:#b00020;color:#fff}
+/* Тост */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;background:#0b1020;color:#e2e8f0;border-radius:10px;padding:9px 12px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:9999;opacity:.98;max-width:min(92vw, 520px)}
+.toast.ok{background:var(--ok);color:#04100a}
+.toast.err{background:var(--err);color:#1a050b}
+
+.hintbar{padding-top:8px;font-size:12px}
+
+/* Нижняя навигация (мобилка) */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;display:none;gap:8px;justify-content:space-around;padding:10px;background:color-mix(in oklab, var(--bg) 85%, transparent);border-top:1px solid var(--border);backdrop-filter:saturate(140%) blur(10px);z-index:20}
+.bottom-nav .btab{flex:1;max-width:180px;background:transparent;color:inherit;border:1px solid var(--border);border-radius:999px;padding:10px 12px}
+.bottom-nav .btab.active{background:var(--accent);border-color:transparent;color:var(--accent-fg)}
+
+/* Адаптив */
+@media (max-width: 720px){
+  .tabs{display:none}
+  .bottom-nav{display:flex}
+  .scrollbox{max-height:52vh}
+  .scrollbox table{min-width:760px}
+}
+
+@media (max-width: 420px){
+  input,select,button{width:100%}
+  .controls{gap:10px}
+  .topbar-row{flex-direction:column;align-items:flex-start}
+  .topbar-actions{width:100%;justify-content:space-between}
+}
+
+/* Группы detailId в списке банов */
+tr.ban-detail-header{cursor:pointer;background:color-mix(in oklab, var(--card) 80%, var(--bg));font-weight:600}
+tr.ban-detail-header:hover{background:color-mix(in oklab, var(--card) 65%, var(--bg))}
+tr.ban-detail-item td{font-weight:400}
+
+.center{text-align:center}
+
+.checks{display:inline-flex;gap:8px;align-items:center;justify-content:center}
+.chk{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:6px;border:1px solid var(--border);font-size:12px;line-height:1;padding:0 5px}
+.chk.ok{background:color-mix(in oklab, var(--ok) 18%, var(--card));border-color:color-mix(in oklab, var(--ok) 35%, var(--border));color:var(--ok)}
+.chk.bad{background:color-mix(in oklab, var(--err) 16%, var(--card));border-color:color-mix(in oklab, var(--err) 35%, var(--border));color:var(--err)}
+.chk.unk{background:color-mix(in oklab, var(--muted) 10%, var(--card));color:var(--muted)}
