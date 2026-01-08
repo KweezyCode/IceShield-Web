@@ -40,36 +40,21 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
     return cityName && cityName !== 'None' ? `${base} — ${cityName}` : base;
   }
 
-  function normalizeChecks(obj){
-    if(!obj) return null;
-    // поддерживаем вложенный формат { checks: {...} } или плоский (asnHosting/asnVpn).
-    const checks = obj.checks && typeof obj.checks === 'object' ? obj.checks : obj;
-
-    const out = { ...checks };
-
-    // если сервер вернул только asnHosting/asnVpn без asnOk/badAsn — вычислим.
-    if(typeof out.badAsn !== 'boolean'){
-      const h = !!out.asnHosting;
-      const v = !!out.asnVpn;
-      out.badAsn = h || v;
-    }
-    if(typeof out.asnOk !== 'boolean'){
-      // asnOk зависит ещё от наличия ASN, но это можно проверить отдельно, поэтому здесь только по badAsn
-      out.asnOk = !out.badAsn;
-    }
-    return out;
-  }
-
-  function applyChecks(tr, checks){
-    const c = normalizeChecks(checks);
-    if(!c){
+  // Устарело: normalizeChecks/checks. Теперь сервер возвращает ровно badASN.
+  function applyChecks(tr, meta){
+    if(!meta){
       setCheck(tr,'asn', null, 'ASN: нет данных');
       return;
     }
 
-    const asnOk = (typeof c.asnOk === 'boolean') ? c.asnOk : null;
-    const asnTitle = (c.badAsn===true) ? `ASN запрещён: hosting=${!!c.asnHosting}, vpn=${!!c.asnVpn}` : 'ASN: ок';
-    setCheck(tr,'asn', asnOk, asnTitle);
+    const bad = (typeof meta.badASN === 'boolean') ? meta.badASN : null;
+    if(bad === null){
+      setCheck(tr,'asn', null, 'ASN: нет данных');
+      return;
+    }
+
+    const ok = !bad;
+    setCheck(tr, 'asn', ok, bad ? 'ASN запрещён (в списке)' : 'ASN: ок');
   }
 
   function renderRow(x){
@@ -110,7 +95,7 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
         const asnNum = Number(cached.asn);
         if(cEl) cEl.textContent = renderCountry(cc, cached.city);
         if(aEl) aEl.textContent = (asnNum && asnNum > 0) ? ('AS'+String(asnNum).replace(/\D/g,'')) : '—';
-        applyChecks(tr, cached.checks);
+        applyChecks(tr, cached);
 
         const hasUseful = (cc && cc !== 'UNKNOWN') || (asnNum && asnNum > 0);
         tr.setAttribute('data-meta', hasUseful ? 'ok' : '');
@@ -126,7 +111,7 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
         const asnNum = Number(r.data.asn);
         if(cEl) cEl.textContent = renderCountry(cc, r.data.city);
         if(aEl) aEl.textContent = (asnNum && asnNum > 0) ? ('AS'+String(asnNum).replace(/\D/g,'')) : '—';
-        applyChecks(tr, r.data.checks || r.data);
+        applyChecks(tr, r.data);
 
         const hasUseful = (cc && cc !== 'UNKNOWN') || (asnNum && asnNum > 0);
         tr.setAttribute('data-meta', hasUseful ? 'ok' : '');

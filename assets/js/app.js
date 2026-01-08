@@ -20,8 +20,8 @@ let cfg = loadConfig();
 const api = new ApiClient(()=>cfg);
 const ctxMenu = createContextMenu();
 
-// Временный кэш метаданных аудита (ASN/страна/проверки).
-const auditMetaCache = new Map(); // key: `${username}|${ip}` => { asn, countryCode, countryName, city, isp, checks }
+// Временный кэш метаданных аудита.
+const auditMetaCache = new Map(); // key: `${username}|${ip}` => { asn, countryCode, countryName, city, isp, badASN }
 function metaKey({ username, ip }){ return `${username||''}|${ip||''}`; }
 function resolveAuditMeta({ username, ip }){
   return auditMetaCache.get(metaKey({ username, ip })) || null;
@@ -34,7 +34,7 @@ function setAuditMeta({ username, ip }, data){
     countryName: data.countryName,
     city: data.city,
     isp: data.isp,
-    checks: data.checks || null
+    badASN: (typeof data.badASN === 'boolean') ? data.badASN : null
   });
 }
 
