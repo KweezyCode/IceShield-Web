@@ -17,10 +17,7 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
   }
 
   function renderChecksCell(){
-    // два индикатора: IPHub и ASN-list
-    // начальное состояние: «…»
-    return `<span class="checks" title="Проверки: IPHub / ASN">
-      <span class="chk" data-chk="iphub" title="IPHub">…</span>
+    return `<span class="checks" title="Проверки: ASN (hosting/vpn)">
       <span class="chk" data-chk="asn" title="ASN (hosting/vpn) | datamining">…</span>
     </span>`;
   }
@@ -35,20 +32,43 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
     if(title) el.title = title;
   }
 
+  function renderCountry(cc, city){
+    const code = (cc || '').trim();
+    const cityName = (city || '').trim();
+    if(!code) return '—';
+    const base = `${countryFlagEmoji(code)} ${code}`.trim();
+    return cityName && cityName !== 'None' ? `${base} — ${cityName}` : base;
+  }
+
+  function normalizeChecks(obj){
+    if(!obj) return null;
+    // поддерживаем вложенный формат { checks: {...} } или плоский (asnHosting/asnVpn).
+    const checks = obj.checks && typeof obj.checks === 'object' ? obj.checks : obj;
+
+    const out = { ...checks };
+
+    // если сервер вернул только asnHosting/asnVpn без asnOk/badAsn — вычислим.
+    if(typeof out.badAsn !== 'boolean'){
+      const h = !!out.asnHosting;
+      const v = !!out.asnVpn;
+      out.badAsn = h || v;
+    }
+    if(typeof out.asnOk !== 'boolean'){
+      // asnOk зависит ещё от наличия ASN, но это можно проверить отдельно, поэтому здесь только по badAsn
+      out.asnOk = !out.badAsn;
+    }
+    return out;
+  }
+
   function applyChecks(tr, checks){
-    if(!checks){
-      setCheck(tr,'iphub', null, 'IPHub: нет данных');
+    const c = normalizeChecks(checks);
+    if(!c){
       setCheck(tr,'asn', null, 'ASN: нет данных');
       return;
     }
-    // iphubOk: true если safe, false если non-residential, null если не удалось
-    const iphubOk = (typeof checks.iphubOk === 'boolean') ? checks.iphubOk : null;
-    const iphubTitle = checks.iphubBlock ? `IPHub: ${checks.iphubBlock} (${checks.iphubBlockCode ?? '—'})` : 'IPHub: нет данных';
-    setCheck(tr,'iphub', iphubOk, iphubTitle);
 
-    // asnOk: true если ASN не в списках vpn/hosting и asn>0
-    const asnOk = (typeof checks.asnOk === 'boolean') ? checks.asnOk : null;
-    const asnTitle = (checks.badAsn===true) ? `ASN запрещён: hosting=${!!checks.asnHosting}, vpn=${!!checks.asnVpn}` : 'ASN: ок';
+    const asnOk = (typeof c.asnOk === 'boolean') ? c.asnOk : null;
+    const asnTitle = (c.badAsn===true) ? `ASN запрещён: hosting=${!!c.asnHosting}, vpn=${!!c.asnVpn}` : 'ASN: ок';
     setCheck(tr,'asn', asnOk, asnTitle);
   }
 
@@ -88,7 +108,7 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
       if(cached){
         const cc = cached.countryCode || '';
         const asnNum = Number(cached.asn);
-        if(cEl) cEl.textContent = cc ? `${countryFlagEmoji(cc)} ${cc}`.trim() : '—';
+        if(cEl) cEl.textContent = renderCountry(cc, cached.city);
         if(aEl) aEl.textContent = (asnNum && asnNum > 0) ? ('AS'+String(asnNum).replace(/\D/g,'')) : '—';
         applyChecks(tr, cached.checks);
 
@@ -104,9 +124,9 @@ export function initAuditPage({ api, ensureAuth, ctxMenu, onChangePass, resolveA
         try{ setAuditMeta && setAuditMeta({ username, ip }, r.data); }catch(_){ /* ignore */ }
         const cc = (r.data.countryCode || '').trim();
         const asnNum = Number(r.data.asn);
-        if(cEl) cEl.textContent = cc ? `${countryFlagEmoji(cc)} ${cc}`.trim() : '—';
+        if(cEl) cEl.textContent = renderCountry(cc, r.data.city);
         if(aEl) aEl.textContent = (asnNum && asnNum > 0) ? ('AS'+String(asnNum).replace(/\D/g,'')) : '—';
-        applyChecks(tr, r.data.checks);
+        applyChecks(tr, r.data.checks || r.data);
 
         const hasUseful = (cc && cc !== 'UNKNOWN') || (asnNum && asnNum > 0);
         tr.setAttribute('data-meta', hasUseful ? 'ok' : '');

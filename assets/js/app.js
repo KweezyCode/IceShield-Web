@@ -21,7 +21,7 @@ const api = new ApiClient(()=>cfg);
 const ctxMenu = createContextMenu();
 
 // Временный кэш метаданных аудита (ASN/страна/проверки).
-const auditMetaCache = new Map(); // key: `${username}|${ip}` => { asn, countryCode, countryName, isp, checks }
+const auditMetaCache = new Map(); // key: `${username}|${ip}` => { asn, countryCode, countryName, city, isp, checks }
 function metaKey({ username, ip }){ return `${username||''}|${ip||''}`; }
 function resolveAuditMeta({ username, ip }){
   return auditMetaCache.get(metaKey({ username, ip })) || null;
@@ -32,6 +32,7 @@ function setAuditMeta({ username, ip }, data){
     asn: data.asn,
     countryCode: data.countryCode,
     countryName: data.countryName,
+    city: data.city,
     isp: data.isp,
     checks: data.checks || null
   });
