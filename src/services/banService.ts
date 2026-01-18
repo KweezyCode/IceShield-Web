@@ -44,7 +44,7 @@ export const banService = {
     },
 
     addTargetsToDetail: async (detailId: number, targets: BanTarget[]) => {
-        return api.post<{ status: string; added: number }>("/bans/add-entry", { detailId, targets });
+        return api.post<{ status: string; added: number }>("/bans/append", { detailId, targets });
     },
 
     deleteBanByDetailId: async (detailId: number) => {
