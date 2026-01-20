@@ -2,7 +2,7 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "main" ] # Собираем при пуше в main
+    branches: [ "master" ]
 
 jobs:
   build:
