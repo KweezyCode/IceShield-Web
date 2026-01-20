@@ -18,9 +18,16 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: amd64,arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push
         run: |
           # Приводим имя репозитория к нижнему регистру для Docker
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ghcr.io/$REPO_NAME:latest .
-          docker push ghcr.io/$REPO_NAME:latest
+          docker buildx build --platform linux/amd64,linux/arm64 --tag ghcr.io/$REPO_NAME:latest --push .
