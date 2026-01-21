@@ -10,6 +10,7 @@ export interface BanEntry {
     type: 'USERNAME' | 'IP' | 'SUBNET' | 'ASN';
     entryId: number;
     value: string;
+    createdBy?: string | null;
 }
 
 export interface BanDetailDTO {

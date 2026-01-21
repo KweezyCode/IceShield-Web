@@ -85,6 +85,9 @@ export function BanTable({ data, isLoading, onDelete, onDeleteEntry, onAddTarget
                                             <div key={idx} className="flex items-center justify-between gap-2 text-xs">
                                                 <div>
                                                     <span className="font-semibold">{typeLabel(e.type)}:</span> {e.value}
+                                                    {e.createdBy && (
+                                                        <span className="text-muted-foreground">{' '}• создал: {e.createdBy}</span>
+                                                    )}
                                                 </div>
                                                 <Button
                                                     variant="ghost"
