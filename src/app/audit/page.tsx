@@ -102,28 +102,28 @@ export default function AuditPage() {
                 )}
             </div>
 
-            <form onSubmit={handleSearch} className="mt-2 flex gap-4 border-t bg-background/95 backdrop-blur-md p-2">
-                <Input 
-                    placeholder="Фильтр по пользователю..." 
+            <form onSubmit={handleSearch} className="mt-2 grid gap-3 border-t bg-background/95 backdrop-blur-md p-2 md:grid-cols-[1fr_1fr_auto] md:items-center">
+                <Input
+                    placeholder="Фильтр по пользователю..."
                     value={filters.username}
                     onChange={(e) => setFilters(prev => ({...prev, username: e.target.value}))}
-                    className="max-w-xs"
                 />
-                <Input 
-                    placeholder="Фильтр по IP..." 
+                <Input
+                    placeholder="Фильтр по IP..."
                     value={filters.ip}
                     onChange={(e) => setFilters(prev => ({...prev, ip: e.target.value}))}
-                    className="max-w-xs"
                 />
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setFilters({ username: '', ip: '' })}
-                    title="Очистить фильтры"
-                >
-                    <XCircle className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center gap-2 md:justify-end">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setFilters({ username: '', ip: '' })}
+                        title="Очистить фильтры"
+                    >
+                        <XCircle className="h-5 w-5" />
+                    </Button>
+                </div>
             </form>
         </div>
     );

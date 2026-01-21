@@ -14,11 +14,12 @@ import {
     ContextMenuItem, 
     ContextMenuTrigger 
 } from "@/components/ui/context-menu";
+import { Button } from "@/components/ui/button";
 import { AuditLog, AuditMeta } from "@/services/types";
 import { format, isValid } from "date-fns";
 import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
-import { Gavel, Copy } from "lucide-react";
+import { Gavel, Copy, MoreVertical } from "lucide-react";
 import { auditService } from "@/services/auditService";
 import { useEffect, useMemo, useState } from "react";
 
@@ -148,85 +149,185 @@ export function AuditTable({ data, isLoading }: AuditTableProps) {
 
     return (
         <div className="rounded-md border">
-            <Table>
-                <TableHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur-md">
-                    <TableRow className="bg-background/95 backdrop-blur-md">
-                        <TableHead>Проверки</TableHead>
-                        <TableHead>Username</TableHead>
-                        <TableHead>IP</TableHead>
-                        <TableHead>Страна</TableHead>
-                        <TableHead>ASN</TableHead>
-                        <TableHead>Время записи</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={6} className="text-center h-24">
-                                Нет данных.
-                            </TableCell>
+            <div className="hidden md:block">
+                <Table>
+                    <TableHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur-md">
+                        <TableRow className="bg-background/95 backdrop-blur-md">
+                            <TableHead>Проверки</TableHead>
+                            <TableHead>Username</TableHead>
+                            <TableHead>IP</TableHead>
+                            <TableHead>Страна</TableHead>
+                            <TableHead>ASN</TableHead>
+                            <TableHead>Время записи</TableHead>
                         </TableRow>
-                    ) : (
-                        data.map((log) => (
-                            <ContextMenu key={log.id}>
-                                <ContextMenuTrigger asChild>
-                                    <TableRow className={`cursor-pointer ${rowClass(log.joincode)} animate-fade-in`}>
-                                        <TableCell className="whitespace-nowrap">
-                                            <span
-                                                className={`inline-flex min-w-[40px] items-center justify-center rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                                                    asnStatus(metaMap[toIpv4(log.ipNum)]) === 'bad'
-                                                        ? 'border-red-500 bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)]'
-                                                        : asnStatus(metaMap[toIpv4(log.ipNum)]) === 'ok'
-                                                            ? 'border-muted-foreground/40 text-muted-foreground'
-                                                            : 'border-dashed border-muted-foreground/50 text-muted-foreground'
-                                                }`}
-                                                title="ASN"
-                                            >
-                                                ASN
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>{log.username}</TableCell>
-                                        <TableCell className="font-mono">{toIpv4(log.ipNum)}</TableCell>
-                                        <TableCell>{formatCountry(metaMap[toIpv4(log.ipNum)])}</TableCell>
-                                        <TableCell className="font-mono">{asnLabel(metaMap[toIpv4(log.ipNum)])}</TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            {formatTime(log.createdAt)}
-                                        </TableCell>
-                                    </TableRow>
-                                </ContextMenuTrigger>
-                                <ContextMenuContent>
-                                    <ContextMenuItem onClick={() => copyToClipboard(log.username)}>
-                                        <Copy className="mr-2 h-4 w-4" />
-                                        Копировать пользователя
-                                    </ContextMenuItem>
-                                    <ContextMenuItem onClick={() => copyToClipboard(String(log.ipNum))}>
-                                        <Copy className="mr-2 h-4 w-4" />
-                                        Копировать IP (число)
-                                    </ContextMenuItem>
-                                    <ContextMenuItem onClick={() => copyToClipboard(toIpv4(log.ipNum))}>
-                                        <Copy className="mr-2 h-4 w-4" />
-                                        Копировать IP
-                                    </ContextMenuItem>
-                                    <ContextMenuItem onClick={() => {
-                                        setBanDraft([{ type: 'USERNAME', value: log.username }]);
-                                        router.push('/bans');
-                                    }}>
-                                        <Gavel className="mr-2 h-4 w-4" />
-                                        Забанить пользователя
-                                    </ContextMenuItem>
-                                    <ContextMenuItem onClick={() => {
-                                        setBanDraft([{ type: 'IP', value: toIpv4(log.ipNum) }]);
-                                        router.push('/bans');
-                                    }}>
-                                        <Gavel className="mr-2 h-4 w-4" />
-                                        Забанить IP
-                                    </ContextMenuItem>
-                                </ContextMenuContent>
-                            </ContextMenu>
-                        ))
-                    )}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {data.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center h-24">
+                                    Нет данных.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            data.map((log) => (
+                                <ContextMenu key={log.id}>
+                                    <ContextMenuTrigger asChild>
+                                        <TableRow className={`cursor-pointer ${rowClass(log.joincode)} animate-fade-in`}>
+                                            <TableCell className="whitespace-nowrap">
+                                                <span
+                                                    className={`inline-flex min-w-[40px] items-center justify-center rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                                                        asnStatus(metaMap[toIpv4(log.ipNum)]) === 'bad'
+                                                            ? 'border-red-500 bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)]'
+                                                            : asnStatus(metaMap[toIpv4(log.ipNum)]) === 'ok'
+                                                                ? 'border-muted-foreground/40 text-muted-foreground'
+                                                                : 'border-dashed border-muted-foreground/50 text-muted-foreground'
+                                                    }`}
+                                                    title="ASN"
+                                                >
+                                                    ASN
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>{log.username}</TableCell>
+                                            <TableCell className="font-mono">{toIpv4(log.ipNum)}</TableCell>
+                                            <TableCell>{formatCountry(metaMap[toIpv4(log.ipNum)])}</TableCell>
+                                            <TableCell className="font-mono">{asnLabel(metaMap[toIpv4(log.ipNum)])}</TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                {formatTime(log.createdAt)}
+                                            </TableCell>
+                                        </TableRow>
+                                    </ContextMenuTrigger>
+                                    <ContextMenuContent>
+                                        <ContextMenuItem onClick={() => copyToClipboard(log.username)}>
+                                            <Copy className="mr-2 h-4 w-4" />
+                                            Копировать пользователя
+                                        </ContextMenuItem>
+                                        <ContextMenuItem onClick={() => copyToClipboard(String(log.ipNum))}>
+                                            <Copy className="mr-2 h-4 w-4" />
+                                            Копировать IP (число)
+                                        </ContextMenuItem>
+                                        <ContextMenuItem onClick={() => copyToClipboard(toIpv4(log.ipNum))}>
+                                            <Copy className="mr-2 h-4 w-4" />
+                                            Копировать IP
+                                        </ContextMenuItem>
+                                        <ContextMenuItem onClick={() => {
+                                            setBanDraft([{ type: 'USERNAME', value: log.username }]);
+                                            router.push('/bans');
+                                        }}>
+                                            <Gavel className="mr-2 h-4 w-4" />
+                                            Забанить пользователя
+                                        </ContextMenuItem>
+                                        <ContextMenuItem onClick={() => {
+                                            setBanDraft([{ type: 'IP', value: toIpv4(log.ipNum) }]);
+                                            router.push('/bans');
+                                        }}>
+                                            <Gavel className="mr-2 h-4 w-4" />
+                                            Забанить IP
+                                        </ContextMenuItem>
+                                    </ContextMenuContent>
+                                </ContextMenu>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <div className="md:hidden space-y-3 p-4">
+                {data.length === 0 ? (
+                    <div className="text-center text-sm text-muted-foreground">Нет данных.</div>
+                ) : (
+                    data.map((log) => {
+                        const ip = toIpv4(log.ipNum);
+                        const meta = metaMap[ip];
+                        return (
+                            <div key={log.id} className={`rounded-lg border p-3 transition-shadow duration-200 hover:shadow-sm ${rowClass(log.joincode)}`}>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="text-sm font-semibold">{log.username}</div>
+                                        <div className="text-xs text-muted-foreground">{formatTime(log.createdAt)}</div>
+                                    </div>
+                                    <span
+                                        className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                                            asnStatus(meta) === 'bad'
+                                                ? 'border-red-500 bg-red-500 text-white'
+                                                : asnStatus(meta) === 'ok'
+                                                    ? 'border-muted-foreground/40 text-muted-foreground'
+                                                    : 'border-dashed border-muted-foreground/50 text-muted-foreground'
+                                        }`}
+                                    >
+                                        ASN
+                                    </span>
+                                </div>
+
+                                <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <div className="font-medium">IP</div>
+                                        <div className="font-mono text-muted-foreground">{ip}</div>
+                                    </div>
+                                    <div>
+                                        <div className="font-medium">ASN</div>
+                                        <div className="font-mono text-muted-foreground">{asnLabel(meta)}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="font-medium">Страна</div>
+                                        <div className="text-muted-foreground">{formatCountry(meta)}</div>
+                                    </div>
+                                </div>
+
+                                <details className="mt-3 rounded-md border bg-background/50">
+                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-medium">
+                                        Действия
+                                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                    </summary>
+                                    <div className="flex flex-col gap-2 px-3 pb-3">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => copyToClipboard(log.username)}
+                                        >
+                                            <Copy className="mr-2 h-4 w-4" />
+                                            Копировать пользователя
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => copyToClipboard(ip)}
+                                        >
+                                            <Copy className="mr-2 h-4 w-4" />
+                                            Копировать IP
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setBanDraft([{ type: 'USERNAME', value: log.username }]);
+                                                router.push('/bans');
+                                            }}
+                                        >
+                                            <Gavel className="mr-2 h-4 w-4" />
+                                            Забанить пользователя
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setBanDraft([{ type: 'IP', value: ip }]);
+                                                router.push('/bans');
+                                            }}
+                                        >
+                                            <Gavel className="mr-2 h-4 w-4" />
+                                            Забанить IP
+                                        </Button>
+                                    </div>
+                                </details>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
         </div>
     );
 }

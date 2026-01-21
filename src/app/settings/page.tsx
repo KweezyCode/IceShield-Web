@@ -27,40 +27,51 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="max-w-md space-y-6">
+        <div className="mx-auto w-full max-w-md space-y-6">
             <h1 className="text-3xl font-bold">Настройки</h1>
-            
-            <div className="space-y-4 rounded-lg border p-4 bg-card">
+
+            <form
+                className="space-y-4 rounded-lg border bg-card p-4"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSave();
+                }}
+            >
                 <div className="space-y-2">
-                    <Label>Базовый URL API</Label>
-                    <Input 
-                        value={localBaseUrl} 
-                        onChange={e => setLocalBaseUrl(e.target.value)} 
-                        placeholder="/api" 
+                    <Label htmlFor="baseUrl">Базовый URL API</Label>
+                    <Input
+                        id="baseUrl"
+                        value={localBaseUrl}
+                        onChange={e => setLocalBaseUrl(e.target.value)}
+                        placeholder="/api"
                     />
                     <p className="text-xs text-muted-foreground">По умолчанию /api для одного домена.</p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Логин администратора</Label>
-                    <Input 
-                        value={localUser} 
-                        onChange={e => setLocalUser(e.target.value)} 
+                    <Label htmlFor="adminUser">Логин администратора</Label>
+                    <Input
+                        id="adminUser"
+                        value={localUser}
+                        onChange={e => setLocalUser(e.target.value)}
+                        autoComplete="username"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Пароль администратора</Label>
-                    <Input 
+                    <Label htmlFor="adminPass">Пароль администратора</Label>
+                    <Input
+                        id="adminPass"
                         type="password"
-                        value={localPass} 
-                        onChange={e => setLocalPass(e.target.value)} 
+                        value={localPass}
+                        onChange={e => setLocalPass(e.target.value)}
+                        autoComplete="current-password"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <Label>Тема</Label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button
                             type="button"
                             variant={theme === 'light' ? 'default' : 'outline'}
@@ -78,8 +89,8 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                <Button onClick={handleSave} className="w-full">Сохранить</Button>
-            </div>
+                <Button type="submit" className="w-full">Сохранить</Button>
+            </form>
         </div>
     );
 }

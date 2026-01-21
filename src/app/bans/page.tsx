@@ -36,34 +36,36 @@ export default function BansPage() {
                 <AddBanDialog onAdd={addBan} onAddToDetail={addTargetsToDetail} />
             </div>
             
-            <div className="flex gap-4 items-center">
-                <Input 
-                    placeholder="Поиск по причине..." 
+            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-center">
+                <Input
+                    placeholder="Поиск по причине..."
                     value={filters.reason}
                     onChange={(e) => setFilters(prev => ({...prev, reason: e.target.value}))}
-                    className="max-w-xs"
+                    className="w-full"
                 />
-                 <Input 
-                    placeholder="Поиск по автору..." 
+                <Input
+                    placeholder="Поиск по автору..."
                     value={filters.bannedBy}
                     onChange={(e) => setFilters(prev => ({...prev, bannedBy: e.target.value}))}
-                    className="max-w-xs"
+                    className="w-full"
                 />
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setFilters({ bannedBy: '', reason: '', active: true })}
-                    title="Очистить фильтры"
-                >
-                    <XCircle className="h-5 w-5" />
-                </Button>
-                 <Button 
-                    variant={filters.active ? "default" : "outline"}
-                    onClick={() => setFilters(prev => ({...prev, active: !prev.active}))}
-                >
-                    <Filter className="mr-2 h-4 w-4" />
-                    {filters.active ? "Активные баны" : "Все баны"}
-                </Button>
+                <div className="flex items-center gap-2 justify-start md:justify-end">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setFilters({ bannedBy: '', reason: '', active: true })}
+                        title="Очистить фильтры"
+                    >
+                        <XCircle className="h-5 w-5" />
+                    </Button>
+                    <Button
+                        variant={filters.active ? "default" : "outline"}
+                        onClick={() => setFilters(prev => ({...prev, active: !prev.active}))}
+                    >
+                        <Filter className="mr-2 h-4 w-4" />
+                        {filters.active ? "Активные баны" : "Все баны"}
+                    </Button>
+                </div>
             </div>
 
             <BanTable 
@@ -78,7 +80,7 @@ export default function BansPage() {
                 onAddTarget={(detailId) => setBanDraft([{ type: "USERNAME", value: "" }], detailId)}
             />
 
-            <div className="flex items-center justify-end space-x-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
                 <Button 
                     variant="outline" 
                     size="sm" 
